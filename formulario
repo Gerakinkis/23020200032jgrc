@@ -1,0 +1,155 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class FormularioGasto extends StatefulWidget {
+  const FormularioGasto({super.key});
+
+  @override
+  State<FormularioGasto> createState() => _FormularioGastoState();
+}
+
+class _FormularioGastoState extends State<FormularioGasto> {
+  final _tituloController = TextEditingController();
+  final _cantidadController = TextEditingController();
+  DateTime? _fechaSeleccionada;
+  String _divisaSeleccionada = 'USD';
+
+  void _presentarDatePicker() {
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2021),
+      lastDate: DateTime.now(),
+    ).then((fechaRecogida) {
+      if (fechaRecogida == null) return;
+      setState(() {
+        _fechaSeleccionada = fechaRecogida;
+      });
+    });
+  }
+
+  void _enviarDatos() {
+    final titulo = _tituloController.text;
+    final cantidad = double.tryParse(_cantidadController.text) ?? 0;
+
+    if (titulo.isEmpty || cantidad <= 0 || _fechaSeleccionada == null) {
+      return;
+    }
+
+    Navigator.of(context).pop({
+      'titulo': titulo,
+      'monto': cantidad,
+      'fecha': _fechaSeleccionada,
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 37, 43, 94),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: _tituloController,
+                      maxLength: 50,
+                      decoration: const InputDecoration(labelText: 'Titulo'),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: TextField(
+                            controller: _cantidadController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Cantidad: ',
+                              prefixText: '\$ ',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          flex: 3,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                _fechaSeleccionada == null
+                                    ? 'Sin fecha'
+                                    : DateFormat('dd/MM/yy').format(_fechaSeleccionada!),
+                                style: const TextStyle(color: Color.fromARGB(255, 60, 54, 161)),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.calendar_month),
+                                onPressed: _presentarDatePicker,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        DropdownButton<String>(
+                          value: _divisaSeleccionada,
+                          items: <String>['USD', 'EUR', 'MXN']
+                              .map((String value) => DropdownMenuItem(
+                                    value: value,
+                                    child: Text(value),
+                                  ))
+                              .toList(),
+                          onChanged: (newValue) {
+                            setState(() {
+                              _divisaSeleccionada = newValue!;
+                            });
+                          },
+                        ),
+                        Row(
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Cancelar'),
+                            ),
+                            ElevatedButton(
+                              onPressed: _enviarDatos,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 221, 243, 252),
+                                foregroundColor: const Color.fromARGB(255, 11, 34, 56),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              child: const Text('Guardar gasto :O'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
